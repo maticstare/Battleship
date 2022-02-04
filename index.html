@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="battleship.js"></script>
+</head>
+<style>
+    body{
+        background-color: #FF6C11;
+    }
+    h1,h5{
+        text-align: center;
+    }
+    #availableShips, #fields, td{
+        border: black 1px solid;
+        border-collapse: collapse;
+        cursor: context-menu;
+        user-select: none;
+    }
+    #availableShips td{
+        height: 30px;
+        width: 50px;
+        text-align: center;
+    }
+    #availableShips, #fields{
+        margin: auto;
+        margin-bottom: 20px;
+    }
+    td{
+        height: 40px;
+        width: 40px;
+        text-align: center;
+    }
+    #single{
+        font-size: 20px;
+        height: 30px;
+        width: 60px;
+        margin:auto;
+        display:block;
+    }
+    #singleplayer{
+        display: none;
+    }
+    #aiguess, #playerguess{
+        border: 1px solid black;
+        border-collapse: collapse;
+        display: inline-block;
+    }
+
+
+
+
+</style>
+<body>
+    <div id="mainpage">
+        <h1>Welcome to Battleship!</h1>
+        <h5>Place your ships and press start!</h5>
+
+        <table id="availableShips">
+            <tr id="shipKey">
+                <td>Ship size:</td>
+                <td id="5.0">5</td>
+                <td id="4.0">4</td>
+                <td id="3.0">3</td>
+                <td id="2.0">2</td>
+            </tr>
+            <tr id="shipValue">
+                <td>Ships left:</td>
+                <td id="5.1">0</td>
+                <td id="4.1">0</td>
+                <td id="3.1">0</td>
+                <td id="2.1">0</td>
+            </tr>
+        </table>
+
+        <table id="fields"></table>
+
+
+
+        <button id="single" onclick="newGame()">new game</button>
+    </div>
+
+    <div id="singleplayer">
+        <table id="aiguess"></table>
+        <table id="playerguess"></table>
+
+
+    </div>
+
+
+
+</body>
+<script>
+    var ladje = [5,4,3,3,2];
+
+    function drawFields(){
+        for (var i = 0; i < 10; i++) {
+            var table = document.getElementById("fields");
+            var row = table.insertRow(i);
+            for (var j = 0; j < 10; j++) {
+                var cell = row.insertCell(j);
+                cell.setAttribute("style", "background-color: #023788;");
+                cell.setAttribute("onmousedown", `prepShippos(${i}, ${j}, "down")`);
+                cell.setAttribute("onmouseup", `prepShippos(${i}, ${j}, "up")`);
+                cell.setAttribute("id", `cell:${i},${j}`);
+            }
+        }
+    }
+
+    var shippos = [];
+    function prepShippos(i, j, updown){
+        if(updown == "down"){
+            shippos = [];
+            shippos.push([i, j, updown]);
+        }else if(updown == "up"){
+            if(shippos.length == 1 && shippos[0][2] == "down"){
+                shippos = [[shippos[0][0], shippos[0][1]]];
+                shippos.push([i, j]);
+                if(shippos[0][1] == shippos[1][1] || shippos[0][0] == shippos[1][0]){
+                    if (shippos[0][1] > shippos[1][1] || shippos[0][0] > shippos[1][0]){
+                        shippos = [shippos[1], shippos[0]];
+                        //console.log(shippos);
+                    }
+                    placeShip(shippos);
+                }
+            }else{
+                shippos = [];
+            }
+        }
+    }
+    function placeShip(shippos){
+        if(shippos[0][1] != shippos[1][1]){
+            var dolzina = Math.abs(shippos[0][1] - shippos[1][1])+1;
+
+        }else if(shippos[0][0] != shippos[1][0]){
+            var dolzina = Math.abs(shippos[0][0] - shippos[1][0])+1;
+        }
+        if(ladje.includes(dolzina)){
+            ladje.splice(ladje.indexOf(dolzina), 1);
+            updateShipsLeft();
+
+            if(shippos[0][1] != shippos[1][1]){
+                for (var k = 0; k < dolzina; k++) {
+                    for (var i = -1; i <= 1; i++) {
+                        for (var j = -1; j <= 1; j++) {
+                            try{
+                                var td = document.getElementById(`cell:${shippos[0][0]+i},${shippos[0][1]+j+k}`);
+                                td.setAttribute("style", "background-color: #000099;");
+                                td.removeAttribute("onmousedown");
+                                td.removeAttribute("onmouseup");
+                            }catch (OOB){}
+
+                        }
+                    }
+                }
+                for (var k = 0; k < dolzina; k++) {
+                    var td = document.getElementById(`cell:${shippos[0][0]},${shippos[0][1]+k}`);
+                    td.setAttribute("style", "background-color: #99004d;");
+                }
+            }else if(shippos[0][0] != shippos[1][0]){
+                for (var k = 0; k < dolzina; k++) {
+                    for (var i = -1; i <= 1; i++) {
+                        for (var j = -1; j <= 1; j++) {
+                            try{
+                                var td = document.getElementById(`cell:${shippos[0][0]+i+k},${shippos[0][1]+j}`);
+                                td.setAttribute("style", "background-color: #000099;");
+                                td.removeAttribute("onmousedown");
+                                td.removeAttribute("onmouseup");
+                            }catch (OOB){}
+
+                        }
+                    }
+                }
+                for (var k = 0; k < dolzina; k++) {
+                    var td = document.getElementById(`cell:${shippos[0][0]+k},${shippos[0][1]}`);
+                    td.setAttribute("style", "background-color: #99004d;");
+                }
+
+            }
+
+
+
+
+
+
+
+            console.log("placed");
+            console.log(ladje);
+        }
+    }
+
+    function updateShipsLeft(){
+        for (var i = 5; i >= 2; i--) {
+            var td = document.getElementById(`${i}.1`);
+            td.innerHTML = 0;
+        }
+        for (var i = 0; i < ladje.length; i++) {
+            var td = document.getElementById(`${ladje[i]}.1`);
+            td.innerHTML = Number(td.innerHTML)+1;
+        }
+    }
+
+    var player = new Array(10);
+    for (var i = 0; i < 10; i++) {
+        player[i] = new Array(10);
+    }
+
+    var battleship;
+
+    function newGame(){
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 10; j++) {
+                var td = document.getElementById(`cell:${i},${j}`);
+                if(td.style.backgroundColor == "rgb(153, 0, 77)"){
+                    player[i][j] = '#';
+                }else{
+                    player[i][j] = '_';
+                }
+            }
+        }
+        
+        document.getElementById("mainpage").style.display = "none";
+        document.getElementById("singleplayer").style.display = "block";
+        battleship = new Battleship(player);
+        drawTables();
+    }
+
+
+    function drawTables(){
+        var table1 = document.getElementById("aiguess");
+        var table2 = document.getElementById("playerguess");
+        for (var i = 0; i < 10; i++) {
+            var row1 = table1.insertRow(i);
+            var row2 = table2.insertRow(i);
+            for (var j = 0; j < 10; j++) {
+                var cell1 = row1.insertCell(j);
+                var cell2 = row2.insertCell(j);
+                cell1.innerHTML = battleship.player[i][j];
+                cell1.setAttribute("id", `id1${i},${j}`);
+                cell2.setAttribute("id", `id2${i},${j}`);
+                cell2.setAttribute("onclick", `playerOpen(${i}, ${j})`)
+            }
+        }
+    }
+
+    function aiOpen(){
+        battleship.aiTurn();
+        console.log(battleship.aiUnveiled);
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 10; j++) {
+                var cell1 = document.getElementById(`id1${i},${j}`);
+                if (battleship.aiUnveiled[i][j] == '_'){
+                    cell1.setAttribute("style", "background-color: #023788;");
+                }else if(battleship.aiUnveiled[i][j] == '#'){
+                    cell1.setAttribute("style", "background-color: #99004d;");
+                }
+
+            }
+        }
+    }
+
+    function playerOpen(i, j){
+        var td = document.getElementById(`id2${i},${j}`);
+        if (battleship.ai[i][j] == '_'){
+            td.setAttribute("style", "background-color: #023788;");
+        }else{
+            td.setAttribute("style", "background-color: #99004d;");
+        }
+        //setTimeout(aiOpen, Math.random()*2000);
+        aiOpen();
+    }
+
+
+
+
+
+    updateShipsLeft();
+    drawFields();
+</script>
+</html>
